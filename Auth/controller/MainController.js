@@ -1,7 +1,6 @@
 const express = require('express');
 const User = require('../models/myModel')
 const bcryptjs = require('bcryptjs');
-const SECREAT_KEY = "LAKSJDFLSDASDF"
 const jwt = require('jsonwebtoken')
 
 const app = express();
@@ -37,6 +36,7 @@ const signup = async (req, res) => {
 
 
 const logins = async (req, res) => {
+    
     const { email, password } = req.body;
     let user;
     try {
@@ -52,19 +52,18 @@ const logins = async (req, res) => {
         if (!isMatch) {
             res.status(400).json({ message: 'password dont match! try again' })
         }
-        const token = jwt.sign({ id: user._id }, SECREAT_KEY, {
+        const token = jwt.sign({ id: user._id }, process.env.SECREAT_KEY, {
             expiresIn: '35s'
         })
         if (req.cookies[`${user._id}`]) {
             req.cookies[`${user._id}`] = '';
-        };
-        res.cookie(String(user._id), token, {
+        };  
+        res.cookie(String(user._id), String(token), {
             path: '/',
             expires: new Date(Date.now() + 1000 * 30),
             httpOnly: true,
             sameSite: 'lax'
         })
-
         res.status(200).json({ message: "login successfully", user: user, token })
     }
 }
@@ -72,13 +71,13 @@ const logins = async (req, res) => {
 const verifyToken = (req, res, next) => {
     const cookies = req.headers.cookie
     const token = cookies.split('=')[1];
-    console.log(token, '+', req.headers);
+    console.log(token, '+', req.headers, 'token and headers from verifytoken');
     if (!token) {
-        res.status(400).json({ message: "invalid verify token" })
+        res.status(400).json({ message: "No token found in cookie" })
     }
-    jwt.verify(String(token), SECREAT_KEY, (err, user) => {
+    jwt.verify(String(token), process.env.SECREAT_KEY, (err, user) => {
         if (err) {
-            res.status(403).json({ message: "unverfied token" })
+            res.status(403).json({ message: "invalid token" })
         }
         req.id = user.id;
     })
@@ -96,25 +95,24 @@ const getUser = async (req, res) => {
     if (!users) {
         res.status(400).json({ message: 'User not found' });
     }
-    return res.status(200).json({ user: users })
+    return res.status(200).json({ users: users })
 }
 
 const refreshToken = (req, res, next) => {
     const cookies = req.headers.cookie;
     const token = cookies.split('=')[1];
-    console.log(token);
+    console.log(token, 'token from refresh token');
     if (!token) {
         res.status(400).json({ message: "invalid refresh token" })
     }
-    jwt.verify(String(token), SECREAT_KEY, (err, user) => {
+    jwt.verify(String(token), process.env.SECREAT_KEY, (err, user) => {
         if (err) {
             res.status(403).json({ message: "invalid 2nd refresh token" })
         }
-        console.log(user);
         res.clearCookie(`${user.id}`);
         req.cookies[`${user.id}`] = '';
 
-        const token = jwt.sign({ id: user.id }, SECREAT_KEY, {
+        const token = jwt.sign({ id: user.id }, process.env.SECREAT_KEY, {
             expiresIn: '35s'
         })
 

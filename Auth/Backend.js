@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cookieparser())
 app.use('/api', router);
 
-mongoose.connect(`mongodb+srv://dashboard:dashboard@cluster0.we74x89.mongodb.net/?retryWrites=true&w=majority`).then(() => {
+mongoose.connect(`mongodb+srv://dashboard:${process.env.MONGODB_PASSWORD}@cluster0.we74x89.mongodb.net/?retryWrites=true&w=majority`).then(() => {
     app.listen(port, () => {
         console.log(`listening on port ${port}`);
     })
