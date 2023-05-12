@@ -34,7 +34,7 @@ const signup = async (req, res) => {
 
 
 const logins = async (req, res) => {
-    
+
     const { email, password } = req.body;
     let user;
     try {
@@ -46,7 +46,6 @@ const logins = async (req, res) => {
         res.status(400).json({ message: 'User not found' });
     } else {
         const isMatch = bcryptjs.compareSync(password, user.password);
-        console.log(user, 'main user');
         if (!isMatch) {
             res.status(400).json({ message: 'password dont match! try again' })
         }
@@ -55,7 +54,7 @@ const logins = async (req, res) => {
         })
         if (req.cookies[`${user._id}`]) {
             req.cookies[`${user._id}`] = '';
-        };  
+        };
         res.cookie(String(user._id), String(token), {
             path: '/',
             expires: new Date(Date.now() + 1000 * 30),
@@ -68,8 +67,8 @@ const logins = async (req, res) => {
 
 const verifyToken = (req, res, next) => {
     const cookies = req.headers.cookie
+    console.log(req.headers);
     const token = cookies.split('=')[1];
-    console.log(token, '+', req.headers, 'token and headers from verifytoken');
     if (!token) {
         res.status(400).json({ message: "No token found in cookie" })
     }
